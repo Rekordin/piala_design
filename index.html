@@ -90,8 +90,8 @@ r:v=>{const p=i=>`<div style="flex:1;display:flex;flex-direction:column;gap:16px
 return bar()+mn('',`<div style="${L?'width:44%;':''}display:flex;flex-direction:column;gap:18px;justify-content:center">${lab(v.rd,'color:'+C.a)}${D(FT(v.time,L?800:968,tight?170:250),v.time)}<div style="font:500 36px Inter,sans-serif">${e(v.sub)}</div></div><div style="flex:1;display:flex;gap:24px;min-height:0;min-width:0">${p(1)}${D(26,'VS','align-self:center;color:'+C.a)}${p(2)}</div>`)+foot(v.ft)}};
 T.sched={n:'2 · Расписание',f:[['title','Заголовок','Расписание'],['rows','Строки (день | раунд)','Вт · Ср | РАУНД 1\nЧт · Пт | РАУНД 2\nСб | РАУНД 3\nВс | ПОЛУФИНАЛЫ И ФИНАЛ','a'],['tl','Подпись времени','ИГРОВОЕ ВРЕМЯ КАЖДЫЙ ДЕНЬ'],['time','Время','19:00–21:00 МСК']],
 r:v=>{const R=rows(v.rows);return bar()+D(FT(v.title,W-112,tight?100:130),v.title)+`<div style="flex:1;min-height:0;display:flex;flex-direction:column">${R.map((x,i)=>`<div style="flex:1;display:flex;align-items:center;gap:32px;border-top:4px solid;${i==R.length-1?`border-bottom:4px solid;`:''}">${D(FT(x[0]||'',L?560:400,44),x[0]||'','width:'+(L?600:420)+'px;flex:none')}<div style="font:500 ${tight?34:40}px Inter,sans-serif">${e(x[1]||'')}</div></div>`).join('')}</div><div style="background:${C.a};color:${C.bg};padding:32px 40px">${lab(v.tl)}${D(FT(v.time,W-192,72),v.time,'margin-top:18px')}</div>`}};
-T.player={n:'3 · Анонс участника',f:[['tag','Подпись','ПРЕДСТАВЛЯЕМ УЧАСТНИКА'],['nick','Ник','Ник'],['ph','Фото (без фона)','','photo'],['num','Номер','№ 00'],['cap','Потолок карточек','[84–89+]'],['lg','Лого команды','','logo']],
-r:v=>bar()+lab(v.tag,'color:'+C.a)+`<div style="flex:1;min-height:0;position:relative">${D(FT(v.nick,W-96,L?520:380),v.nick,'position:absolute;left:-8px;top:0;color:'+C.a)}<div style="position:absolute;left:${L?'34%':'12%'};right:${L?'34%':'0'};top:${L?'6%':'14%'};bottom:0;display:flex">${box(v.ph,'ФОТО УЧАСТНИКА<br>БЕЗ ФОНА','contain','center bottom')}</div></div><div style="display:flex;border-top:4px solid;padding-top:24px;gap:32px;align-items:center"><div style="flex:1">${lab('Участник')}${D(36,v.num,'margin-top:10px')}</div><div style="flex:1.4">${lab('Потолок карточек')}${D(36,v.cap,'margin-top:10px')}</div>${lg(v.lg,120)}</div>`};
+T.player={n:'3 · Анонс участника',f:[['tag','Подпись','ПРЕДСТАВЛЯЕМ УЧАСТНИКА'],['nick','Ник','Ник'],['nw','Перенос ника','0','s',['Авто: по словам, максимально крупно','Каждое слово с новой строки','В одну строку']],['ph','Фото (без фона)','','photo'],['num','Номер','№ 00'],['cap','Рейтинг','[84–89+]'],['lg','Лого команды','','logo']],
+r:v=>bar()+lab(v.tag,'color:'+C.a)+`<div style="flex:1;min-height:0;position:relative">${NICK(v.nick,+v.nw)}<div style="position:absolute;left:${L?'34%':'12%'};right:${L?'34%':'0'};top:${L?'6%':'14%'};bottom:0;display:flex">${box(v.ph,'ФОТО УЧАСТНИКА<br>БЕЗ ФОНА','contain','center bottom')}</div></div><div style="display:flex;border-top:4px solid;padding-top:24px;gap:32px;align-items:center"><div style="flex:1">${lab('Участник')}${D(36,v.num,'margin-top:10px')}</div><div style="flex:1.4">${lab('Рейтинг')}${D(36,v.cap,'margin-top:10px')}</div>${lg(v.lg,120)}</div>`};
 const FM=['4-3-3','4-4-2','3-5-2','4-2-3-1','5-3-2'],FR=[[4,3,3],[4,4,2],[3,5,2],[4,2,3,1],[5,3,2]];
 T.squad={n:'4 · Схема команды',f:[['nick','Ник','Ник'],['fm','Схема','0','s',FM],['lg','Лого команды','','logo'],['xi','Основа: рейтинг | имя (11 строк)',Array(11).fill('[00] | [ИМЯ]').join('\n'),'a'],['sb','Замены (7 строк)',Array(7).fill('[00] | [ИМЯ]').join('\n'),'a']],
 r:v=>{const X=rows(v.xi),R=FR[+v.fm],n=R.length;let k=1;const mk=(p,x,y)=>`<div style="position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);width:150px;text-align:center;background:${C.bg};color:${C.fg};border:3px solid ${C.fg};padding:6px 4px;overflow:hidden;white-space:nowrap">${D(22,p?p[0]:'')}<div style="font:500 19px Inter,sans-serif;margin-top:6px;overflow:hidden">${e(p&&p[1]||'')}</div></div>`;
@@ -215,13 +215,28 @@ corners:{c:'red',len:160,th:10,w:968,h:968},
 slot:{kind:'photo',ref:null,fit:'contain',pos:'center bottom',bg:'',bc:'',bw:0,lb:'',w:400,h:560},
 piala:{w:300,h:300},
 tile:{s:260,gap:1.25,ref:null,w:1080,h:1080}};
+/* подбор самого крупного шрифта с переносом по словам (слово целиком в строке) */
+let _cx=null;
+function mw(s,wt,fam,ls){const f=wt+' 100px '+fam;try{if(!_cx)_cx=document.createElement('canvas').getContext('2d');if(document.fonts&&document.fonts.check(f,s)){_cx.font=f;return _cx.measureText(s).width/100+(ls||0)*s.length}}catch(x){}return (.9+(ls||0))*s.length}
+function WF(src,w,h,mx,lh,m,mode){const A=Array.isArray(src),ws=A?[]:String(src||'').trim().split(/\s+/).filter(Boolean),C=[];
+if(A&&src.length)C.push(src);else if(!ws.length)return{s:mx,l:['']};
+else if(mode==2||ws.length==1)C.push([ws.join(' ')]);else if(mode==1)C.push(ws);
+else if(ws.length<=11){for(let k=0;k<1<<(ws.length-1);k++){const l=[];let c=ws[0];for(let i=1;i<ws.length;i++){if(k>>(i-1)&1){l.push(c);c=ws[i]}else c+=' '+ws[i]}l.push(c);C.push(l)}}
+else{const t=ws.join(' ').length;for(let n=1;n<=6;n++){const l=[];let c='';for(const x of ws){if(c&&(c+' '+x).length>t/n+3){l.push(c);c=x}else c=c?c+' '+x:x}l.push(c);C.push(l)}}
+const M=new Map(),mm=s=>{if(!M.has(s))M.set(s,m(s));return M.get(s)};let b=null;
+for(const l of C){const wm=Math.max(.1,...l.map(mm)),s=Math.min(mx,w/wm,h/(l.length*lh));if(!b||s>b.s+.5||(Math.abs(s-b.s)<=.5&&l.length<b.l.length))b={s,l}}
+return{s:Math.max(8,Math.floor(b.s)),l:b.l}}
+function WFt(el){const d=el.font=='d',fam=d?"'Rubik Mono One'":'Inter',wt=d?400:(el.b?800:500),ls=String(el.tx||'').split('\n').map(x=>x.trim()).filter(Boolean),up=el.up?(s=>s.toUpperCase()):(s=>s);
+return WF(ls.length>1?ls:(ls[0]||''),Math.max(10,el.w-2*el.pd),Math.max(10,el.h-2*el.pd),el.sz,el.lh,s=>mw(up(s),wt,fam,el.ls),0)}
+function NICK(t,mode){const r=WF(t,W-104,Math.round((H-418)*.55),L?520:380,1,s=>mw(s.toUpperCase(),400,"'Rubik Mono One'",0),mode);return `<div class="d" style="font-size:${r.s}px;position:absolute;left:-8px;top:0;color:${C.a}">${r.l.map(e).join('<br>')}</div>`}
 const KOK=(k,i)=>k=='any'||(k=='logo'?KD(i)=='logo':KD(i)!='logo');
 function slotUrl(el){const r=el.ref;if(!r)return '';const i=lib.find(x=>x.id==r.id)||lib.find(x=>x.name==r.n&&KD(x)==r.k);return i?i.url:''}
 const PHC=()=>FC[ST.bg=='ink'||ST.bg=='red'?'paper':'ink'];
 function elHTML(el){
 const P=x=>`position:absolute;left:${el.x}px;top:${el.y}px;width:${el.w}px;${x||''}${el.op<100&&el.t!='tile'?`opacity:${el.op/100};`:''}`,A=`data-id="${el.id}" data-ty="${el.t}"`,H=`height:${el.h}px;`;
-if(el.t=='text'){const fam=el.font=='d'?"'Rubik Mono One',sans-serif":'Inter,sans-serif',wt=el.font=='d'?400:(el.b?800:500);
-return `<div ${A} style="${P(`box-sizing:border-box;padding:${el.pd}px;font-family:${fam};font-weight:${wt};font-size:${el.sz}px;line-height:${el.lh};letter-spacing:${el.ls}em;text-align:${el.al};color:${FC[el.c]};${el.bg?`background:${FC[el.bg]};`:''}${el.up?'text-transform:uppercase;':''}${el.fit?'white-space:nowrap;':'overflow-wrap:anywhere;'}`)}"><span class="ti" style="${el.fit?'display:inline-block;':''}">${e(el.tx||'​').replace(/\n/g,'<br>')}</span></div>`}
+if(el.t=='text'){const fam=el.font=='d'?"'Rubik Mono One',sans-serif":'Inter,sans-serif',wt=el.font=='d'?400:(el.b?800:500),f=+el.fit;let fs=el.sz,body;
+if(f==2){const r=WFt(el);fs=r.s;body=r.l.map(e).join('<br>')||'​'}else body=e(el.tx||'​').replace(/\n/g,'<br>');
+return `<div ${A} style="${P(`box-sizing:border-box;padding:${el.pd}px;${f==2?`height:${el.h}px;`:''}font-family:${fam};font-weight:${wt};font-size:${fs}px;line-height:${el.lh};letter-spacing:${el.ls}em;text-align:${el.al};color:${FC[el.c]};${el.bg?`background:${FC[el.bg]};`:''}${el.up?'text-transform:uppercase;':''}${f?'white-space:nowrap;':'overflow-wrap:normal;word-break:normal;'}`)}"><span class="ti" style="${f==1?'display:inline-block;':''}">${body}</span></div>`}
 if(el.t=='rect')return `<div ${A} style="${P(`${H}box-sizing:border-box;${el.c?`background:${FC[el.c]};`:''}${el.bc&&el.bw?`border:${el.bw}px solid ${FC[el.bc]};`:''}`)}"></div>`;
 if(el.t=='frame')return `<div ${A} style="${P(H)}"><div style="position:absolute;inset:0;box-sizing:border-box;border:${el.bw}px solid ${FC[el.bc]}"></div>${el.dbl?`<div style="position:absolute;inset:${el.fg}px;box-sizing:border-box;border:${el.bw2}px solid ${FC[el.bc2]}"></div>`:''}</div>`;
 if(el.t=='dbar'){const h=el.dir=='h';return `<div ${A} style="${P(H)}"><div style="position:absolute;left:0;top:0;${h?`width:100%;height:${el.t1}px`:`height:100%;width:${el.t1}px`};background:${FC[el.c1]}"></div><div style="position:absolute;${h?`left:0;bottom:0;width:100%;height:${el.t2}px`:`top:0;right:0;height:100%;width:${el.t2}px`};background:${FC[el.c2]}"></div></div>`}
@@ -235,10 +250,11 @@ return ''}
 function drawFree(){const[w,h]=SZ[ST.sz];W=w;H=h;L=w>h;tight=!L&&h<=1350;
 stage.className='st free';stage.style.width=w+'px';stage.style.height=h+'px';stage.style.background=FC[ST.bg];stage.style.color=FC.ink;
 stage.innerHTML=ST.els.map(elHTML).join('');
-stage.querySelectorAll('[data-ty=text]').forEach(n=>{const el=ST.els.find(x=>x.id==n.dataset.id);if(!el)return;if(el.fit){const sp=n.firstChild,aw=el.w-2*el.pd;if(aw>0&&sp.offsetWidth>aw)n.style.fontSize=Math.max(8,Math.floor(el.sz*aw/sp.offsetWidth))+'px'}el.h=n.offsetHeight});
+stage.querySelectorAll('[data-ty=text]').forEach(n=>{const el=ST.els.find(x=>x.id==n.dataset.id);if(!el)return;if(+el.fit==1){const sp=n.firstChild,aw=el.w-2*el.pd;if(aw>0&&sp.offsetWidth>aw)n.style.fontSize=Math.max(8,Math.floor(el.sz*aw/sp.offsetWidth))+'px'}if(+el.fit!=2)el.h=n.offsetHeight});
 $('#px').textContent=Math.round(w*$('#sc').value)+' × '+Math.round(h*$('#sc').value)+' px';fit()}
 const HDL=[['nw',0,0],['n',.5,0],['ne',1,0],['e',1,.5],['se',1,1],['s',.5,1],['sw',0,1],['w',0,.5]],HC={nw:'nwse',se:'nwse',ne:'nesw',sw:'nesw',n:'ns',s:'ns',e:'ew',w:'ew'};
-const canH=(el,k)=>{if(el.t=='text')return k=='e'||k=='w';if(el.t=='dbar')return el.dir=='h'?(k=='e'||k=='w'):(k=='n'||k=='s');return true};
+const autoH=el=>el.t=='text'&&+el.fit!=2;
+const canH=(el,k)=>{if(autoH(el))return k=='e'||k=='w';if(el.t=='dbar')return el.dir=='h'?(k=='e'||k=='w'):(k=='n'||k=='s');return true};
 function ovDraw(){let o=$('#ov');if(!o)return;if(MODE!='free'){o.innerHTML='';return}
 const el=cur(),hs=14/KK,lw=2/KK;let h='';
 if(el){h+=`<div class="sel" style="left:${el.x}px;top:${el.y}px;width:${el.w}px;height:${el.h}px;outline-width:${lw}px"></div>`;
@@ -265,8 +281,8 @@ const ck=(p,l,v,att='data-p')=>`<label class="ck"><input type="checkbox" ${att}=
 const lbl=o=>o.t=='text'?'Текст: '+(o.tx||'').split('\n')[0].slice(0,22):o.t=='slot'?(o.kind=='logo'?'Лого':o.kind=='any'?'Картинка':'Фото')+(o.ref?(slotUrl(o)?' ✓':' ⚠'):' (пусто)'):NM[o.t];
 const layers=()=>ST.els.length?[...ST.els].reverse().map(o=>`<div class="li"><button data-ly="${o.id}" class="lyb${o.id==SEL?' on':''}">${o.lk?'(закреп.) ':''}${e(lbl(o))}</button><button data-lu="${o.id}">↑</button><button data-ld="${o.id}">↓</button></div>`).join(''):'<div class="note">Пока пусто</div>';
 function tprops(el){const t=el.t;let h='';
-if(t=='text'){h+=`<label>Текст<textarea data-p="tx" rows="3">${e(el.tx)}</textarea></label><div class="g2">${sl('font','Шрифт',el.font,[['i','Inter'],['d','Rubik Mono One']])}${nf('sz','Размер, px',el.sz)}${nf('ls','Разрядка, em',el.ls,'step="0.01"')}${nf('lh','Межстрочный',el.lh,'step="0.05"')}${nf('pd','Отступ, px',el.pd)}</div>`
-+(el.font=='d'?'<label class="ck" style="opacity:.55"><input type="checkbox" disabled> Жирный (у Rubik Mono One одно начертание)</label>':ck('b','Жирный',el.b))+ck('up','ПРОПИСНЫЕ',el.up)+ck('fit','Подгонять размер под ширину',el.fit)
+if(t=='text'){h+=`<label>Текст<textarea data-p="tx" rows="3">${e(el.tx)}</textarea></label><div class="g2">${sl('font','Шрифт',el.font,[['i','Inter'],['d','Rubik Mono One']])}${nf('sz',+el.fit==2?'Макс. размер, px':'Размер, px',el.sz)}${nf('ls','Разрядка, em',el.ls,'step="0.01"')}${nf('lh','Межстрочный',el.lh,'step="0.05"')}${nf('pd','Отступ, px',el.pd)}</div>`
++(el.font=='d'?'<label class="ck" style="opacity:.55"><input type="checkbox" disabled> Жирный (у Rubik Mono One одно начертание)</label>':ck('b','Жирный',el.b))+ck('up','ПРОПИСНЫЕ',el.up)+sl('fit','Подгонка текста',+el.fit,[[0,'Обычный: перенос по словам'],[1,'В одну строку, ужать по ширине'],[2,'По словам, максимально крупно (в рамке)']])+(+el.fit==2?'<div class="note">Размер — максимальный: текст сам подбирает самый крупный шрифт и переносит слова целиком, пока не поместится в рамку. Свой перенос строк — клавишей Enter.</div>':'')
 +`<div class="sl">Выравнивание</div><div class="row">${[['left','Слева'],['center','По центру'],['right','Справа']].map(([a,b])=>`<button data-sw="al" data-v="${a}" class="${el.al==a?'on':''}">${b}</button>`).join('')}</div><div class="sl">Цвет текста</div>${sw('c',el.c)}<div class="sl">Плашка под текстом</div>${sw('bg',el.bg,1)}`}
 else if(t=='rect')h+=`<div class="sl">Заливка</div>${sw('c',el.c,1)}<div class="sl">Обводка</div>${sw('bc',el.bc,1)}${sl('bw','Толщина обводки',el.bw,BW([0,2,3,4,6,8,12,16,24]))}`;
 else if(t=='frame')h+=`<div class="sl">Цвет</div>${sw('bc',el.bc)}${sl('bw','Толщина',el.bw,BW([2,3,4,5,6,8,10,12,16,24]))}${ck('dbl','Вторая рамка внутри',el.dbl)}`+(el.dbl?`<div class="sl">Цвет второй рамки</div>${sw('bc2',el.bc2)}<div class="g2">${sl('bw2','Толщина',el.bw2,BW([2,3,4,5,6,8,12]))}${nf('fg','Отступ, px',el.fg)}</div>`:'');
@@ -281,7 +297,7 @@ return h}
 function spanel(force){const p=$('#sp');if(!p)return;const ae=document.activeElement;if(!force&&ae&&p.contains(ae)&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;
 const el=cur();let h='';
 if(el){h+=`<div class="g">Выбрано: ${NM[el.t]}</div><div class="row"><button data-act="dup">Дублировать</button><button data-act="del">Удалить</button><button data-act="up">Выше</button><button data-act="dn">Ниже</button></div>`
-+`<div class="g2">${nf('x','X',el.x)}${nf('y','Y',el.y)}${nf('w','Ширина',el.w)}${el.t=='text'?'<label>Высота<input value="авто" disabled></label>':nf('h','Высота',el.h)}</div><div class="row" style="margin-top:8px">${[['l','Лево'],['c','Центр'],['r','Право'],['t','Верх'],['m','Середина'],['b','Низ']].map(([a,b])=>`<button data-al="${a}">${b}</button>`).join('')}</div>`
++`<div class="g2">${nf('x','X',el.x)}${nf('y','Y',el.y)}${nf('w','Ширина',el.w)}${autoH(el)?'<label>Высота<input value="авто" disabled></label>':nf('h','Высота',el.h)}</div><div class="row" style="margin-top:8px">${[['l','Лево'],['c','Центр'],['r','Право'],['t','Верх'],['m','Середина'],['b','Низ']].map(([a,b])=>`<button data-al="${a}">${b}</button>`).join('')}</div>`
 +tprops(el)+`<div class="g2">${nf('op','Прозрачность, %',el.op)}</div>`+ck('lk','Закрепить (не двигается мышью)',el.lk)}
 else h+='<div class="g">Холст</div><div class="note">Добавьте элемент слева или выберите его на холсте. Тяните за маркеры, чтобы менять размер. Стрелки двигают на 1 px, с Shift — на 10. Delete — удалить, Ctrl+D — копия, Ctrl+Z — отмена.</div>';
 h+=`<div class="g">Слои (верхний — первый)</div>${layers()}<div class="g">Параметры холста</div>`+ck('snap','Привязка к краям, центру и соседям',ST.snap,'data-st')+ck('hide','Не показывать пустые места на скачанной картинке',ST.hide,'data-st')+'<div class="row" style="margin-top:8px"><button data-act="undo">Отменить</button><button data-act="redo">Вернуть</button></div>';
@@ -293,6 +309,7 @@ const R={sz:[6,600],w:[10,4000],h:[10,4000],bw:[0,100],bw2:[0,100],ls:[-.1,1],lh
 if(typeof v=='number'&&R[p])v=Math.min(R[p][1],Math.max(R[p][0],v));
 if(el.t=='dbar'&&(p=='t1'||p=='t2')){const og=Math.max(0,(el.dir=='h'?el.h:el.w)-el.t1-el.t2);el[p]=v;const n=el.t1+og+el.t2;if(el.dir=='h')el.h=n;else el.w=n;return}
 if(el.t=='dbar'&&p=='dir'&&v!=el.dir){const a=el.w;el.w=el.h;el.h=a}
+if(p=='fit'){v=+v;if(v==2){if(el.h<200)el.h=Math.round(Math.max(240,el.w*.4));if(el.sz<300)el.sz=600}}
 el[p]=v}
 function select(id){if(SEL===id)return;SEL=id;spanel(true);ovDraw()}
 const _T=x=>({t:'text',...x}),_R=x=>({t:'rect',...x});
@@ -324,8 +341,8 @@ const PRE={
 const r=[...mkAdd('top',w,h,0),_T({tx:'РАУНД [N]',sz:22,ls:.1,c:'red',x:m,y:Lw?150:128,w:tw}),_T({tx:'19:00',font:'d',b:0,sz:250,ls:0,lh:1,fit:1,x:m,y:Lw?190:160,w:tw}),_T({tx:'МСК · [ДЕНЬ, ДАТА]',b:0,up:0,sz:36,ls:0,x:m,y:Lw?470:430,w:tw})];
 for(let i=0;i<2;i++){const xx=px+i*(p1+100);r.push({t:'slot',kind:'photo',x:xx,y:py,w:p1,h:ph},{t:'slot',kind:'logo',pos:'center',bg:'paper',bc:'ink',bw:3,x:xx,y:ny,w:84,h:84},_T({tx:'Игрок '+(i+1),font:'d',b:0,sz:34,ls:0,fit:1,x:xx+100,y:ny+25,w:p1-100}))}
 r.push(_T({tx:'VS',font:'d',b:0,sz:26,ls:0,c:'red',al:'center',x:px+p1,y:py+Math.round(ph/2)-13,w:100}),...mkAdd('foot',w,h,0));return r},
-'Анонс участника':(w,h)=>{const m=56,iw=w-2*m;return[...mkAdd('top',w,h,0),_T({tx:'ПРЕДСТАВЛЯЕМ УЧАСТНИКА',sz:22,ls:.1,c:'red',x:m,y:130,w:iw}),_T({tx:'НИК',font:'d',b:0,sz:380,ls:0,lh:1,fit:1,c:'red',x:m,y:170,w:iw}),{t:'slot',kind:'photo',x:Math.round(w*.16),y:Math.round(h*.2),w:Math.round(w*.68),h:Math.round(h*.62)},
-_R({c:'ink',x:m,y:h-m-170,w:iw,h:4}),_T({tx:'УЧАСТНИК',sz:22,ls:.1,x:m,y:h-m-140,w:300}),_T({tx:'№ 00',font:'d',b:0,sz:36,ls:0,x:m,y:h-m-105,w:300}),_T({tx:'ПОТОЛОК КАРТОЧЕК',sz:22,ls:.1,x:m+340,y:h-m-140,w:360}),_T({tx:'[84–89+]',font:'d',b:0,sz:36,ls:0,x:m+340,y:h-m-105,w:360}),{t:'slot',kind:'logo',pos:'center',bg:'paper',bc:'ink',bw:4,x:w-m-120,y:h-m-130,w:120,h:120}]},
+'Анонс участника':(w,h)=>{const m=56,iw=w-2*m;return[...mkAdd('top',w,h,0),_T({tx:'ПРЕДСТАВЛЯЕМ УЧАСТНИКА',sz:22,ls:.1,c:'red',x:m,y:130,w:iw}),_T({tx:'НИК',font:'d',b:0,sz:380,ls:0,lh:1,fit:2,c:'red',x:m,y:170,w:iw,h:Math.round(h*.4)}),{t:'slot',kind:'photo',x:Math.round(w*.16),y:Math.round(h*.2),w:Math.round(w*.68),h:Math.round(h*.62)},
+_R({c:'ink',x:m,y:h-m-170,w:iw,h:4}),_T({tx:'УЧАСТНИК',sz:22,ls:.1,x:m,y:h-m-140,w:300}),_T({tx:'№ 00',font:'d',b:0,sz:36,ls:0,x:m,y:h-m-105,w:300}),_T({tx:'РЕЙТИНГ',sz:22,ls:.1,x:m+340,y:h-m-140,w:360}),_T({tx:'[84–89+]',font:'d',b:0,sz:36,ls:0,x:m+340,y:h-m-105,w:360}),{t:'slot',kind:'logo',pos:'center',bg:'paper',bc:'ink',bw:4,x:w-m-120,y:h-m-130,w:120,h:120}]},
 'Лого-стена':(w,h)=>{const m=56;return[{t:'tile',x:0,y:0,w,h,op:14,s:w>h?300:260},{t:'frame',x:0,y:0,w,h,bw:8,dbl:1,fg:48,bc2:'red',bw2:3},{t:'slot',kind:'logo',pos:'center',bg:'paper',bc:'ink',bw:4,x:Math.round((w-360)/2),y:Math.round(h/2-360),w:360,h:360},_T({tx:'ЗАГОЛОВОК',font:'d',b:0,sz:120,ls:0,lh:1,fit:1,al:'center',bg:'paper',pd:28,x:m+60,y:Math.round(h/2)+40,w:w-2*m-120})]}};
 function preset(n){pushH('pre',1);const[w,h]=SZ[ST.sz];ST.els=PRE[n](w,h).map(mkEl);SEL=null;drawFree();spanel(true)}
 function dup(){const el=cur();if(!el)return;pushH('dup',1);const c={...cl(el),id:uid(),x:el.x+24,y:el.y+24};ST.els.splice(ST.els.indexOf(el)+1,0,c);SEL=c.id;drawFree();spanel(true)}
@@ -386,8 +403,8 @@ if(ds.st){ST[ds.st]=t.checked?1:0;saveDraft();return}
 const el=cur();if(!el)return;
 if(ds.pick!=null){pushH('pick',1);const i=lib.find(x=>x.id==t.value);el.ref=i?{id:i.id,n:i.name,k:KD(i)}:null;drawFree();spanel(true);return}
 const p=ds.p;if(!p)return;const v=ds.c?(t.checked?1:0):ds.n?parseFloat(t.value):t.value;if(ds.n&&!isFinite(v))return;
-pushH('p'+el.id+p);setP(el,p,v);drawFree();syncXY();if(p=='font'||p=='dir'||p=='dbl'||p=='kind')spanel(true)});
-if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',()=>{if(MODE=='free')drawFree()});
+pushH('p'+el.id+p);setP(el,p,v);drawFree();syncXY();if(p=='font'||p=='dir'||p=='dbl'||p=='kind'||p=='fit')spanel(true)});
+if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',()=>{if(MODE=='free')drawFree();else draw()});
 
 /* ===== Свободная сборка: мышь и клавиатура ===== */
 const pt=ev=>{const r=stage.getBoundingClientRect();return[(ev.clientX-r.left)/KK,(ev.clientY-r.top)/KK]};
@@ -419,9 +436,9 @@ if(k.includes('w'))x1+=dx;if(k.includes('e'))x2+=dx;if(k.includes('n'))y1+=dy;if
 if(sn){const sg=(v,ls,ax)=>{const a=nearest([v],ls,tol);if(a)GUIDES.push([ax,a.l]);return a?a.d:0};
 if(k.includes('w'))x1+=sg(x1,xs,'x');if(k.includes('e'))x2+=sg(x2,xs,'x');if(k.includes('n'))y1+=sg(y1,ys,'y');if(k.includes('s'))y2+=sg(y2,ys,'y')}
 if(x2-x1<20){if(k.includes('w'))x1=x2-20;else x2=x1+20}if(y2-y1<20){if(k.includes('n'))y1=y2-20;else y2=y1+20}
-if(ev.shiftKey&&k.length==2&&el.t!='text'){const s=Math.max((x2-x1)/o.w,(y2-y1)/o.h),w=o.w*s,h=o.h*s;if(k.includes('w'))x1=x2-w;else x2=x1+w;if(k.includes('n'))y1=y2-h;else y2=y1+h}
+if(ev.shiftKey&&k.length==2&&!autoH(el)){const s=Math.max((x2-x1)/o.w,(y2-y1)/o.h),w=o.w*s,h=o.h*s;if(k.includes('w'))x1=x2-w;else x2=x1+w;if(k.includes('n'))y1=y2-h;else y2=y1+h}
 el.x=Math.round(x1);el.w=Math.round(x2-x1);
-if(el.t!='text'&&!(el.t=='dbar'&&el.dir=='h')){el.y=Math.round(y1);el.h=Math.round(y2-y1)}
+if(!autoH(el)&&!(el.t=='dbar'&&el.dir=='h')){el.y=Math.round(y1);el.h=Math.round(y2-y1)}
 drawFree()}
 syncXY();ovDraw()});
 const endDrag=()=>{if(!DR)return;const m=DR.moved;DR=null;GUIDES=[];if(m){drawFree();spanel(true);saveDraft()}else ovDraw()};
